@@ -1,0 +1,24 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install toolchain
+      run: rustup toolchain install nightly --component rust-src && cargo install bpf-linker
+    - name: Cargo Check
+      run: AYA_BUILD_EBPF=true cargo check --verbose
+    - name: Run tests
+      run: cargo test --verbose
