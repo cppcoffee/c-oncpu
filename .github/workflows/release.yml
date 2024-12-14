@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          rustup toolchain install nightly --component rust-src
+          rustup target add x86_64-unknown-linux-gnu
+          cargo install bpf-linker --target x86_64-unknown-linux-gnu
+
+      - name: Build
+        run: |
+          AYA_BUILD_EBPF=true cargo build --release --target x86_64-unknown-linux-gnu
+          cp target/x86_64-unknown-linux-gnu/release/c-oncpu target/c-oncpu-x86_64
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "target/c-oncpu-x86_64"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
